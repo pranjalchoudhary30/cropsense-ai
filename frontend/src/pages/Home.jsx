@@ -31,8 +31,11 @@ const Home = () => {
                     <nav className="hidden md:flex flex-1 justify-end items-center gap-8">
                         <div className="flex items-center gap-6">
                             <a className="text-sm font-medium text-text-sub hover:text-primary transition-colors" href="#">About</a>
-                            <a className="text-sm font-medium text-text-sub hover:text-primary transition-colors" href="#">How it Works</a>
-                            <a className="text-sm font-medium text-text-sub hover:text-primary transition-colors" href="#">Pricing</a>
+                            <a className="text-sm font-medium text-text-sub hover:text-primary transition-colors" href="#how-it-works">How it Works</a>
+                            <button
+                                onClick={() => navigate('/pricing')}
+                                className="text-sm font-medium text-text-sub hover:text-primary transition-colors"
+                            >Pricing</button>
                         </div>
                         {user ? (
                             <button
@@ -265,7 +268,84 @@ const Home = () => {
                 </section>
 
 
-                {/* Dashboard Preview */}
+
+                {/* ── Pricing Section ── */}
+                <section id="pricing" className="w-full bg-surface-light px-6 py-16 lg:px-12 lg:py-24">
+                    <div className="mx-auto max-w-7xl flex flex-col gap-12">
+                        <div className="text-center flex flex-col gap-3">
+                            <span className="text-sm font-semibold uppercase tracking-widest text-primary">Plans & Pricing</span>
+                            <h2 className="text-3xl font-bold tracking-tight text-text-main sm:text-4xl">Simple, honest pricing</h2>
+                            <p className="max-w-xl mx-auto text-lg text-text-sub">Start free. Upgrade when you need more. No surprises, no lock-in.</p>
+                        </div>
+
+                        <div className="grid gap-6 md:grid-cols-3 items-start">
+                            {/* Starter */}
+                            <div className="rounded-2xl border border-border-light bg-background-light p-6 flex flex-col gap-4">
+                                <div className="h-1 rounded-full bg-gradient-to-r from-slate-300 to-slate-400 -mx-6 -mt-6 mb-2" />
+                                <div>
+                                    <h3 className="text-lg font-black text-text-main">Starter</h3>
+                                    <p className="text-sm text-text-sub mt-1">Free forever. Great for trying CropSense.</p>
+                                </div>
+                                <div className="text-3xl font-black text-text-main">Free</div>
+                                <ul className="flex flex-col gap-2 text-sm text-text-sub">
+                                    {['5 AI analyses/month', 'Basic price charts', '3-day weather forecast', '1 crop tracking'].map(f => (
+                                        <li key={f} className="flex items-center gap-2"><span className="material-symbols-outlined text-primary text-base">check_circle</span>{f}</li>
+                                    ))}
+                                </ul>
+                                <button onClick={() => navigate('/login')} className="mt-auto w-full py-2.5 rounded-xl border-2 border-primary text-primary font-bold text-sm hover:bg-primary hover:text-white transition-all">Get Started Free</button>
+                            </div>
+
+                            {/* Pro — highlighted */}
+                            <div className="rounded-2xl border-2 border-primary bg-surface-light p-6 flex flex-col gap-4 shadow-xl shadow-primary/10 ring-2 ring-primary ring-offset-2 relative">
+                                <div className="h-1 rounded-full bg-gradient-to-r from-primary to-accent -mx-6 -mt-6 mb-2" />
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-4 py-1 rounded-full">Most Popular</div>
+                                <div>
+                                    <h3 className="text-lg font-black text-primary">Pro</h3>
+                                    <p className="text-sm text-text-sub mt-1">Everything a serious farmer needs.</p>
+                                </div>
+                                <div className="flex items-end gap-1">
+                                    <span className="text-3xl font-black text-text-main">₹499</span>
+                                    <span className="text-text-sub text-sm mb-1">/month</span>
+                                </div>
+                                <ul className="flex flex-col gap-2 text-sm text-text-sub">
+                                    {['Unlimited AI analyses', '14-day price predictions', 'Real-time Mandi alerts', 'Spoilage risk detection', 'Up to 8 crops'].map(f => (
+                                        <li key={f} className="flex items-center gap-2"><span className="material-symbols-outlined text-primary text-base">check_circle</span>{f}</li>
+                                    ))}
+                                </ul>
+                                <button onClick={() => navigate(user ? '/pricing' : '/login')} className="mt-auto w-full py-2.5 rounded-xl bg-gradient-to-r from-primary to-primary-dark text-white font-bold text-sm shadow-lg shadow-primary/30 hover:scale-[1.02] transition-all">Start 14-day Free Trial</button>
+                            </div>
+
+                            {/* Enterprise */}
+                            <div className="rounded-2xl border border-border-light bg-background-light p-6 flex flex-col gap-4">
+                                <div className="h-1 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 -mx-6 -mt-6 mb-2" />
+                                <div>
+                                    <h3 className="text-lg font-black text-text-main">Enterprise</h3>
+                                    <p className="text-sm text-text-sub mt-1">For large farms and agri-businesses.</p>
+                                </div>
+                                <div className="flex items-end gap-1">
+                                    <span className="text-3xl font-black text-text-main">₹1,499</span>
+                                    <span className="text-text-sub text-sm mb-1">/month</span>
+                                </div>
+                                <ul className="flex flex-col gap-2 text-sm text-text-sub">
+                                    {['Everything in Pro', 'Daily satellite scans', '30-day forecasts', 'Unlimited crops', 'Priority support + manager'].map(f => (
+                                        <li key={f} className="flex items-center gap-2"><span className="material-symbols-outlined text-purple-500 text-base">check_circle</span>{f}</li>
+                                    ))}
+                                </ul>
+                                <button className="mt-auto w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold text-sm hover:scale-[1.02] hover:shadow-lg transition-all">Contact Sales</button>
+                            </div>
+                        </div>
+
+                        <div className="text-center">
+                            <button onClick={() => navigate(user ? '/pricing' : '/login')}
+                                className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
+                                View full plan comparison
+                                <span className="material-symbols-outlined text-base">arrow_forward</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                {/* CTA Section */}
                 <section className="w-full bg-background-light px-6 py-16 lg:px-12 lg:py-24">
                     <div className="mx-auto flex max-w-7xl flex-col gap-12 lg:flex-row lg:items-center">
                         <div className="flex flex-1 flex-col gap-6">

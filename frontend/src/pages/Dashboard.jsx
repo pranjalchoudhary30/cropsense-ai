@@ -1,13 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { predictPrice, getWeather, recommendMarket, getSpoilageRisk } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
     AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
 } from 'recharts';
 
 /* ─── tiny helpers ──────────────────────────────────────────── */
 const fmt = (n) => n != null ? Number(n).toLocaleString('en-IN') : '—';
+
+const NOTIFICATIONS = [
+    { id: 1, icon: 'trending_up', color: 'text-green-600 bg-green-50', title: 'Price Alert', body: 'Wheat price up 8% in Khanna Mandi — great time to sell!', time: '2m ago', unread: true },
+    { id: 2, icon: 'water_drop', color: 'text-blue-500 bg-blue-50', title: 'Weather Warning', body: 'Heavy rain expected in Punjab in the next 48 hours.', time: '1h ago', unread: true },
+    { id: 3, icon: 'check_circle', color: 'text-primary bg-primary/10', title: 'Analysis Complete', body: 'Your latest crop analysis report is ready to view.', time: '3h ago', unread: false },
+];
 
 function RingGauge({ pct = 0, color = '#10b981', size = 72 }) {
     const r = 28, circ = 2 * Math.PI * r;
@@ -76,7 +83,26 @@ function Typewriter({ text = '', speed = 18 }) {
 /* ═══════════════════════════════════════════════════════════ */
 export default function Dashboard() {
     const { user, logout } = useAuth();
+    const { t } = useLanguage();
     const navigate = useNavigate();
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [notifOpen, setNotifOpen] = useState(false);
+    const dropdownRef = useRef(null);
+    const notifRef = useRef(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClick = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setDropdownOpen(false);
+            }
+            if (notifRef.current && !notifRef.current.contains(e.target)) {
+                setNotifOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, []);
 
     const [crop, setCrop] = useState(CROPS[0]);
     const [location, setLocation] = useState('Punjab, India');
@@ -92,8 +118,8 @@ export default function Dashboard() {
     const [greeting, setGreeting] = useState('');
     useEffect(() => {
         const h = new Date().getHours();
-        setGreeting(h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening');
-    }, []);
+        setGreeting(h < 12 ? t('goodMorning') : h < 17 ? t('goodAfternoon') : t('goodEvening'));
+    }, [t]);
 
     /* ── Build chart data from prediction ── */
     const chartData = React.useMemo(() => {
@@ -158,6 +184,7 @@ export default function Dashboard() {
             return (parseFloat(d) >= 0 ? '+' : '') + d;
         })();
     const priceUp = parseFloat(priceDelta) >= 0;
+    const latestPrice = chartData[chartData.length - 1]?.price ?? predictionData?.current_price ?? 2970;
     return (
         <div className="bg-background-light text-text-main font-display min-h-screen flex flex-col">
 
@@ -172,49 +199,99 @@ export default function Dashboard() {
                     </Link>
 
                     <nav className="hidden md:flex items-center gap-1">
-                        {[['Dashboard', 'dashboard', '/dashboard'], ['Market', 'store', '#'], ['Insights', 'auto_awesome', '#']].map(([label, icon, href]) => (
-                            <a key={label} href={href}
-                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-text-sub hover:text-primary hover:bg-primary/5 transition-all">
-                                <span className="material-symbols-outlined text-base">{icon}</span>
-                                {label}
-                            </a>
+                        {[
+                            [t('dashboard'), 'dashboard', '/dashboard'],
+                            [t('market'), 'store', '/market'],
+                            [t('insights'), 'auto_awesome', '#'],
+                        ].map(([label, icon, href]) => (
+                            href.startsWith('/') ? (
+                                <Link key={label} to={href}
+                                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${href === '/dashboard' ? 'text-primary bg-primary/10' : 'text-text-sub hover:text-primary hover:bg-primary/5'}`}>
+                                    <span className="material-symbols-outlined text-base">{icon}</span>
+                                    {label}
+                                </Link>
+                            ) : (
+                                <a key={label} href={href}
+                                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-text-sub hover:text-primary hover:bg-primary/5 transition-all">
+                                    <span className="material-symbols-outlined text-base">{icon}</span>
+                                    {label}
+                                </a>
+                            )
                         ))}
                     </nav>
 
                     <div className="flex items-center gap-3">
                         {/* notification */}
-                        <button className="relative size-9 rounded-full hover:bg-border-light transition-colors flex items-center justify-center text-text-sub">
-                            <span className="material-symbols-outlined text-xl">notifications</span>
-                            <span className="absolute top-1.5 right-1.5 size-2 bg-red-500 rounded-full ring-2 ring-surface-light" />
-                        </button>
+                        <div className="relative" ref={notifRef}>
+                            <button
+                                onClick={() => setNotifOpen(o => !o)}
+                                className="relative size-9 rounded-full hover:bg-border-light transition-colors flex items-center justify-center text-text-sub">
+                                <span className="material-symbols-outlined text-xl">notifications</span>
+                                <span className="absolute top-1.5 right-1.5 size-2 bg-red-500 rounded-full ring-2 ring-surface-light" />
+                            </button>
+                            {notifOpen && (
+                                <div className="absolute right-0 mt-2 w-80 bg-surface-light border border-border-light rounded-2xl shadow-2xl z-50 overflow-hidden">
+                                    <div className="px-4 py-3 border-b border-border-light flex items-center justify-between">
+                                        <p className="font-bold text-sm text-text-main">Notifications</p>
+                                        <span className="text-[10px] bg-red-500 text-white font-bold px-2 py-0.5 rounded-full">2 new</span>
+                                    </div>
+                                    <div className="divide-y divide-border-light max-h-72 overflow-y-auto">
+                                        {NOTIFICATIONS.map(n => (
+                                            <div key={n.id} className={`flex gap-3 px-4 py-3 hover:bg-primary/5 transition-colors cursor-pointer ${n.unread ? 'bg-primary/[0.03]' : ''}`}>
+                                                <div className={`size-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${n.color}`}>
+                                                    <span className="material-symbols-outlined text-base">{n.icon}</span>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <p className="text-sm font-semibold text-text-main truncate">{n.title}</p>
+                                                        <span className="text-[10px] text-text-sub whitespace-nowrap">{n.time}</span>
+                                                    </div>
+                                                    <p className="text-xs text-text-sub mt-0.5 leading-relaxed">{n.body}</p>
+                                                </div>
+                                                {n.unread && <div className="size-1.5 rounded-full bg-primary flex-shrink-0 mt-2" />}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="px-4 py-2.5 border-t border-border-light">
+                                        <button className="text-xs font-semibold text-primary hover:underline">Mark all as read</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
 
                         {/* avatar + dropdown */}
-                        <div className="relative group">
-                            <button className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border border-border-light hover:border-primary/40 hover:bg-primary/5 transition-all">
+                        <div className="relative" ref={dropdownRef}>
+                            <button
+                                onClick={() => setDropdownOpen((o) => !o)}
+                                className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border border-border-light hover:border-primary/40 hover:bg-primary/5 transition-all">
                                 <div className="size-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-sm">
                                     {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                                 </div>
                                 <span className="text-sm font-medium hidden sm:block">{user?.name?.split(' ')[0] || 'User'}</span>
                                 <span className="material-symbols-outlined text-text-sub text-base">expand_more</span>
                             </button>
-                            <div className="absolute right-0 mt-2 w-56 bg-surface-light border border-border-light rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                                <div className="px-4 py-3 border-b border-border-light">
-                                    <p className="font-semibold text-sm text-text-main truncate">{user?.name}</p>
-                                    <p className="text-xs text-text-sub truncate mt-0.5">{user?.email}</p>
+                            {dropdownOpen && (
+                                <div className="absolute right-0 mt-2 w-56 bg-surface-light border border-border-light rounded-xl shadow-2xl py-2 z-50">
+                                    <div className="px-4 py-3 border-b border-border-light">
+                                        <p className="font-semibold text-sm text-text-main truncate">{user?.name}</p>
+                                        <p className="text-xs text-text-sub truncate mt-0.5">{user?.email}</p>
+                                    </div>
+                                    <Link to="/profile" onClick={() => setDropdownOpen(false)}
+                                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-sub hover:text-primary hover:bg-primary/5 transition-colors">
+                                        <span className="material-symbols-outlined text-base">account_circle</span> Profile
+                                    </Link>
+                                    <Link to="/settings" onClick={() => setDropdownOpen(false)}
+                                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-sub hover:text-primary hover:bg-primary/5 transition-colors">
+                                        <span className="material-symbols-outlined text-base">settings</span> Settings
+                                    </Link>
+                                    <div className="border-t border-border-light mt-1 pt-1">
+                                        <button onClick={() => { logout(); navigate('/login'); }}
+                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                                            <span className="material-symbols-outlined text-base">logout</span> Sign out
+                                        </button>
+                                    </div>
                                 </div>
-                                <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-sub hover:text-primary hover:bg-primary/5 transition-colors">
-                                    <span className="material-symbols-outlined text-base">account_circle</span> Profile
-                                </a>
-                                <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-sub hover:text-primary hover:bg-primary/5 transition-colors">
-                                    <span className="material-symbols-outlined text-base">settings</span> Settings
-                                </a>
-                                <div className="border-t border-border-light mt-1 pt-1">
-                                    <button onClick={() => { logout(); navigate('/login'); }}
-                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
-                                        <span className="material-symbols-outlined text-base">logout</span> Sign out
-                                    </button>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -228,14 +305,14 @@ export default function Dashboard() {
                         <h2 className="text-2xl font-bold text-text-main">
                             {greeting}, <span className="text-primary">{user?.name?.split(' ')[0] || 'Farmer'}</span> 👋
                         </h2>
-                        <p className="text-text-sub text-sm mt-1">Select your crop and location to get AI-powered market intelligence.</p>
+                        <p className="text-text-sub text-sm mt-1">{t('aiSubtitle')}</p>
                     </div>
                     <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-50 border border-green-100 text-green-700 text-sm font-medium">
                         <span className="relative flex size-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
                             <span className="relative inline-flex rounded-full size-2 bg-green-500" />
                         </span>
-                        Live Market Data Active
+                        {t('liveMarketData')}
                     </div>
                 </div>
 
@@ -255,7 +332,7 @@ export default function Dashboard() {
                     <div className="flex flex-col md:flex-row gap-4 items-end">
                         {/* Crop selector */}
                         <div className="flex-1 w-full">
-                            <label className="block text-xs font-semibold text-text-sub uppercase tracking-wider mb-2">Select Crop</label>
+                            <label className="block text-xs font-semibold text-text-sub uppercase tracking-wider mb-2">{t('selectCrop')}</label>
                             <div className="relative">
                                 <span className="absolute inset-y-0 left-3 flex items-center text-primary pointer-events-none">
                                     <span className="material-symbols-outlined text-xl">grass</span>
@@ -272,37 +349,37 @@ export default function Dashboard() {
 
                         {/* Location */}
                         <div className="flex-1 w-full">
-                            <label className="block text-xs font-semibold text-text-sub uppercase tracking-wider mb-2">Location</label>
+                            <label className="block text-xs font-semibold text-text-sub uppercase tracking-wider mb-2">{t('location')}</label>
                             <div className="relative">
                                 <span className="absolute inset-y-0 left-3 flex items-center text-primary pointer-events-none">
                                     <span className="material-symbols-outlined text-xl">location_on</span>
                                 </span>
                                 <input type="text" value={location} onChange={e => setLocation(e.target.value)}
-                                    placeholder="e.g. Punjab, India"
+                                    placeholder={t('locationPlaceholder')}
                                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-border-light bg-background-light text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all placeholder:text-text-sub/60" />
                             </div>
                         </div>
-
-                        {/* Predict button */}
-                        <button onClick={handleAnalyze} disabled={isLoading}
-                            className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark text-white font-bold shadow-lg shadow-primary/30 hover:scale-[1.03] hover:shadow-primary/50 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100">
-                            {isLoading
-                                ? <><div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Analyzing…</>
-                                : <><span className="material-symbols-outlined">psychology</span>Run Analysis</>
-                            }
-                        </button>
                     </div>
+
+                    {/* Predict button */}
+                    <button onClick={handleAnalyze} disabled={isLoading}
+                        className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark text-white font-bold shadow-lg shadow-primary/30 hover:scale-[1.03] hover:shadow-primary/50 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100">
+                        {isLoading
+                            ? <><div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {t('analyzing')}</>
+                            : <><span className="material-symbols-outlined">psychology</span>{t('runAnalysis')}</>
+                        }
+                    </button>
                 </section>
 
                 {/* ── QUICK STATS BAR ─────────────────────────────────── */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {[
-                        { icon: 'trending_up', label: 'Price Trend', value: `${priceUp ? '+' : ''}${priceDelta}%`, color: priceUp ? 'text-green-600' : 'text-red-500', bg: priceUp ? 'bg-green-50' : 'bg-red-50' },
-                        { icon: 'thermostat', label: 'Temperature', value: weatherData ? `${weatherData.temperature}°C` : '28°C', color: 'text-orange-500', bg: 'bg-orange-50' },
-                        { icon: 'humidity_percentage', label: 'Humidity', value: weatherData ? `${weatherData.humidity}%` : '65%', color: 'text-blue-500', bg: 'bg-blue-50' },
-                        { icon: 'store', label: 'Best Mandi', value: recommendationData ? recommendationData.best_mandi.split(',')[0].split(' ').slice(0, 2).join(' ') : 'Khanna Mandi', color: 'text-primary', bg: 'bg-primary/5' },
+                        { icon: 'trending_up', label: t('priceTrend'), value: `${priceUp ? '+' : ''}${priceDelta}%`, color: priceUp ? 'text-green-600' : 'text-red-500', bg: priceUp ? 'bg-green-50' : 'bg-red-50' },
+                        { icon: 'thermostat', label: t('temperature'), value: weatherData ? `${weatherData.temperature}°C` : '28°C', color: 'text-orange-500', bg: 'bg-orange-50' },
+                        { icon: 'humidity_percentage', label: t('humidity'), value: weatherData ? `${weatherData.humidity}%` : '65%', color: 'text-blue-500', bg: 'bg-blue-50' },
+                        { icon: 'store', label: t('bestMandi'), value: recommendationData ? recommendationData.best_mandi.split(',')[0].split(' ').slice(0, 2).join(' ') : 'Khanna Mandi', color: 'text-primary', bg: 'bg-primary/5' },
                     ].map(({ icon, label, value, color, bg }) => (
-                        <div key={label} className="bg-surface-light border border-border-light rounded-xl p-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+                        <div key={label} className="shine-card bg-surface-light border border-border-light rounded-xl p-4 flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
                             <div className={`size-10 rounded-xl ${bg} flex items-center justify-center ${color} flex-shrink-0`}>
                                 <span className="material-symbols-outlined text-xl">{icon}</span>
                             </div>
@@ -325,10 +402,10 @@ export default function Dashboard() {
                             <div className="px-5 py-4 border-b border-border-light flex items-center justify-between">
                                 <h3 className="font-bold text-base flex items-center gap-2">
                                     <span className="material-symbols-outlined text-primary">partly_cloudy_day</span>
-                                    Weather Forecast
+                                    {t('weatherForecast')}
                                 </h3>
                                 <span className="text-xs font-semibold px-2.5 py-1 bg-green-50 text-green-700 border border-green-100 rounded-full flex items-center gap-1">
-                                    <span className="size-1.5 rounded-full bg-green-500 animate-pulse inline-block" />Live
+                                    <span className="size-1.5 rounded-full bg-green-500 animate-pulse inline-block" />{t('live')}
                                 </span>
                             </div>
                             <div className="p-5">
@@ -351,10 +428,10 @@ export default function Dashboard() {
 
                                 <div className="grid grid-cols-2 gap-3">
                                     {[
-                                        { icon: 'humidity_percentage', label: 'Humidity', val: weatherData ? `${weatherData.humidity}%` : '65%', color: 'text-blue-500 bg-blue-50 border-blue-100' },
-                                        { icon: 'water_drop', label: 'Rainfall', val: weatherData?.rainfall_forecast ?? '12mm', color: 'text-cyan-500 bg-cyan-50 border-cyan-100' },
-                                        { icon: 'air', label: 'Wind', val: weatherData?.wind_speed ? `${weatherData.wind_speed} km/h` : '14 km/h', color: 'text-slate-500 bg-slate-50 border-slate-200' },
-                                        { icon: 'wb_sunny', label: 'UV Index', val: '5 Moderate', color: 'text-yellow-600 bg-yellow-50 border-yellow-100' },
+                                        { icon: 'humidity_percentage', label: t('humidity'), val: weatherData ? `${weatherData.humidity}%` : '65%', color: 'text-blue-500 bg-blue-50 border-blue-100' },
+                                        { icon: 'water_drop', label: t('rainfall'), val: weatherData?.rainfall_forecast ?? '12mm', color: 'text-cyan-500 bg-cyan-50 border-cyan-100' },
+                                        { icon: 'air', label: t('wind'), val: weatherData?.wind_speed ? `${weatherData.wind_speed} km/h` : '14 km/h', color: 'text-slate-500 bg-slate-50 border-slate-200' },
+                                        { icon: 'wb_sunny', label: t('uvIndex'), val: '5 Moderate', color: 'text-yellow-600 bg-yellow-50 border-yellow-100' },
                                     ].map(({ icon, label, val, color }) => (
                                         <div key={label} className={`flex items-center gap-2.5 p-3 rounded-xl border ${color}`}>
                                             <span className="material-symbols-outlined text-lg">{icon}</span>
@@ -372,13 +449,13 @@ export default function Dashboard() {
                         <div className="bg-surface-light border border-border-light rounded-2xl shadow-sm overflow-hidden">
                             <div className="px-5 py-4 border-b border-border-light flex items-center gap-2">
                                 <span className="material-symbols-outlined text-orange-500">warning_amber</span>
-                                <h3 className="font-bold text-base">Spoilage Risk</h3>
+                                <h3 className="font-bold text-base">{t('spoilageRisk')}</h3>
                             </div>
                             <div className="p-5 flex items-center gap-6">
                                 <RingGauge pct={spoilagePct} color={spoilageColor} size={80} />
                                 <div className="flex-1">
                                     <p className={`font-bold text-lg`} style={{ color: spoilageColor }}>
-                                        {spoilageData ? spoilageData.risk_level : 'Low'} Risk
+                                        {spoilageData ? spoilageData.risk_level : 'Low'} {t('risk')}
                                     </p>
                                     <p className="text-text-sub text-xs mt-1 leading-relaxed">
                                         {spoilageData?.suggestion || 'Conditions are stable. Monitor storage temperature regularly.'}
@@ -413,7 +490,7 @@ export default function Dashboard() {
                                     </p>
                                     <p className={`text-sm font-semibold flex items-center justify-end gap-0.5 ${priceUp ? 'text-green-600' : 'text-red-500'}`}>
                                         <span className="material-symbols-outlined text-base">{priceUp ? 'arrow_upward' : 'arrow_downward'}</span>
-                                        {priceUp ? '+' : ''}{priceDelta}% over 14d
+                                        {priceUp ? '+' : ''}{priceDelta}% {t('over14d')}
                                     </p>
                                 </div>
                             </div>
@@ -454,7 +531,7 @@ export default function Dashboard() {
                                 </div>
                                 <div className="flex-shrink-0 flex items-center gap-1.5 rounded-full bg-green-50 border border-green-200 px-3 py-1 text-xs font-bold text-green-700">
                                     <span className="material-symbols-outlined text-sm">verified</span>
-                                    {recommendationData?.confidence ? `${Math.round(recommendationData.confidence * 100)}%` : '94%'} Confidence
+                                    {recommendationData?.confidence ? `${Math.round(recommendationData.confidence * 100)}%` : '94%'} {t('confidence')}
                                 </div>
                             </div>
 
@@ -482,14 +559,14 @@ export default function Dashboard() {
 
                                     <div className="grid grid-cols-2 gap-3 my-4">
                                         <div className="bg-background-light p-3 rounded-xl border border-border-light">
-                                            <p className="text-[10px] text-text-sub font-medium uppercase tracking-wide">Predicted Price</p>
+                                            <p className="text-[10px] text-text-sub font-medium uppercase tracking-wide">{t('predictedPrice')}</p>
                                             <p className="text-xl font-black text-primary mt-0.5">
                                                 ₹{fmt(recommendationData?.predicted_price ?? '2,450')}
                                                 <span className="text-xs font-normal text-text-sub">/qt</span>
                                             </p>
                                         </div>
                                         <div className="bg-background-light p-3 rounded-xl border border-border-light">
-                                            <p className="text-[10px] text-text-sub font-medium uppercase tracking-wide">Exp. Profit/Acre</p>
+                                            <p className="text-[10px] text-text-sub font-medium uppercase tracking-wide">{t('expProfit')}</p>
                                             <p className="text-xl font-black text-green-600 mt-0.5">
                                                 ₹{fmt(recommendationData?.expected_profit_per_qt ?? recommendationData?.net_price ?? '—')}
                                             </p>
@@ -499,7 +576,7 @@ export default function Dashboard() {
                                     {/* Confidence bar */}
                                     <div className="mb-3">
                                         <div className="flex justify-between text-xs text-text-sub mb-1">
-                                            <span>AI Confidence</span>
+                                            <span>{t('aiConfidence')}</span>
                                             <span className="font-semibold text-primary">
                                                 {recommendationData?.confidence ? `${Math.round(recommendationData.confidence * 100)}%` : '94%'}
                                             </span>
@@ -518,7 +595,7 @@ export default function Dashboard() {
                                         className="w-full py-2.5 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 text-sm group"
                                     >
                                         <span className="material-symbols-outlined text-lg group-hover:scale-110 transition-transform">navigation</span>
-                                        Navigate to Mandi
+                                        {t('navigateToMandi')}
                                     </a>
                                 </div>
                             </div>
@@ -530,8 +607,8 @@ export default function Dashboard() {
                                 <div className="size-7 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
                                     <span className="material-symbols-outlined text-base">auto_awesome</span>
                                 </div>
-                                <h3 className="font-bold text-base">AI Insights</h3>
-                                <span className="ml-auto text-[10px] px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-100 rounded-full font-semibold">GPT-Powered</span>
+                                <h3 className="font-bold text-base">{t('aiInsights')}</h3>
+                                <span className="ml-auto text-[10px] px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-100 rounded-full font-semibold">{t('gptPowered')}</span>
                             </div>
                             <div className="p-5">
                                 <div className="flex gap-4">
@@ -541,8 +618,8 @@ export default function Dashboard() {
                                     <div className="flex-1 space-y-4">
                                         <p className="text-text-sub text-sm leading-relaxed">
                                             {hasData
-                                                ? <Typewriter text={recommendationData?.explanation || 'Based on historical trends and current demand spikes in the Ludhiana region, Khanna Mandi is showing a 12% higher rate compared to local averages. The upcoming rainfall predicted in 3 days might disrupt logistics, suggesting an optimal selling window within the next 48 hours to maximize profit.'} />
-                                                : 'Based on historical trends and current demand spikes in the Ludhiana region, Khanna Mandi is showing a 12% higher rate compared to local averages. The upcoming rainfall predicted in 3 days might disrupt logistics, suggesting an optimal selling window within the next 48 hours to maximize profit.'
+                                                ? <Typewriter text={recommendationData?.explanation || t('defaultInsight')} />
+                                                : t('defaultInsight')
                                             }
                                         </p>
 
@@ -557,7 +634,7 @@ export default function Dashboard() {
                                         )}
 
                                         <div className="flex flex-wrap gap-2">
-                                            {['Demand Spike', 'Weather Risk', 'Historical High', 'Price Window', 'Market Trend'].map(tag => (
+                                            {[t('demandSpike'), t('weatherRisk'), t('historicalHigh'), t('priceWindow'), t('marketTrend')].map(tag => (
                                                 <span key={tag} className="px-2.5 py-1 bg-background-light border border-border-light text-text-sub text-xs rounded-full font-medium hover:border-primary hover:text-primary transition-colors cursor-default">
                                                     {tag}
                                                 </span>
@@ -576,6 +653,6 @@ export default function Dashboard() {
                     Data refreshed in real-time · CropSense AI © {new Date().getFullYear()} · All insights are AI-generated recommendations
                 </p>
             </main>
-        </div>
+        </div >
     );
 }
