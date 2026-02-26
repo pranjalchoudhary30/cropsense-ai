@@ -125,19 +125,19 @@ const Home = () => {
                     <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 sm:grid-cols-3">
                         <div className="flex flex-col items-center justify-center gap-2 text-center sm:items-start sm:text-left">
                             <span className="text-4xl font-black tracking-tight text-primary">
-                                <AnimatedCounter end="10" suffix="k+" />
+                                <AnimatedCounter end="10" suffix="k+" delay={3100} />
                             </span>
                             <span className="text-sm font-medium text-text-sub">Farmers Helped Worldwide</span>
                         </div>
                         <div className="flex flex-col items-center justify-center gap-2 text-center sm:items-start sm:text-left sm:border-l sm:border-border-light sm:pl-8">
                             <span className="text-4xl font-black tracking-tight text-primary">
-                                <AnimatedCounter end="2.5" suffix="M" />
+                                <AnimatedCounter end="2.5" suffix="M" delay={3100} />
                             </span>
                             <span className="text-sm font-medium text-text-sub">Acres Monitored Daily</span>
                         </div>
                         <div className="flex flex-col items-center justify-center gap-2 text-center sm:items-start sm:text-left sm:border-l sm:border-border-light sm:pl-8">
                             <span className="text-4xl font-black tracking-tight text-primary">
-                                <AnimatedCounter end="15" suffix="%" />
+                                <AnimatedCounter end="15" suffix="%" delay={3100} />
                             </span>
                             <span className="text-sm font-medium text-text-sub">Average Profit Increase</span>
                         </div>

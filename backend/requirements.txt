@@ -1,9 +1,14 @@
 fastapi
-uvicorn
+uvicorn[standard]
 motor
 pandas
 scikit-learn
-prophet
 pydantic
 pydantic-settings
 python-dotenv==1.0.0
+requests
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+google-auth
+httpx

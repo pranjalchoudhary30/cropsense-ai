@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 
-const AnimatedCounter = ({ end, duration = 2000, suffix = '', prefix = '' }) => {
+const AnimatedCounter = ({ end, duration = 2000, suffix = '', prefix = '', delay = 0 }) => {
     const [count, setCount] = useState(0);
     const countRef = useRef(null);
     const [isVisible, setIsVisible] = useState(false);
@@ -10,22 +10,36 @@ const AnimatedCounter = ({ end, duration = 2000, suffix = '', prefix = '' }) => 
     const hasDecimals = end.toString().includes('.');
 
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true);
-                    observer.disconnect();
-                }
-            },
-            { threshold: 0.1 }
-        );
+        let timer;
+        let observer;
 
-        if (countRef.current) {
-            observer.observe(countRef.current);
+        const attachObserver = () => {
+            observer = new IntersectionObserver(
+                ([entry]) => {
+                    if (entry.isIntersecting) {
+                        setIsVisible(true);
+                        observer.disconnect();
+                    }
+                },
+                { threshold: 0.1 }
+            );
+
+            if (countRef.current) {
+                observer.observe(countRef.current);
+            }
+        };
+
+        if (delay > 0) {
+            timer = setTimeout(attachObserver, delay);
+        } else {
+            attachObserver();
         }
 
-        return () => observer.disconnect();
-    }, []);
+        return () => {
+            clearTimeout(timer);
+            if (observer) observer.disconnect();
+        };
+    }, [delay]);
 
     useEffect(() => {
         if (!isVisible) return;

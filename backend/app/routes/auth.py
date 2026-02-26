@@ -4,6 +4,7 @@ from app.models.user_model import UserCreate, UserResponse, Token, GoogleLogin, 
 from app.repositories.user_repository import UserRepository
 from app.services.auth_service import AuthService, ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 from app.database import db
+from app.config import settings
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 
@@ -11,11 +12,8 @@ router = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-# List of emails allowed to use Google Sign In
-ALLOWED_EMAILS = [
-    "pranjalchoudhary30@gmail.com",
-    "pranjalchoudhary8765@gmail.com"
-]
+# Leave empty to allow ALL Google accounts, or add specific emails to restrict access
+ALLOWED_EMAILS = []  # loaded from settings in future
 
 def get_user_repository():
     return UserRepository(db.db)
@@ -94,10 +92,10 @@ async def login(
     )
     
     user_response = UserResponse(
-        id=user["_id"],
+        id=str(user["_id"]),
         email=user["email"],
-        name=user["name"],
-        created_at=user["created_at"]
+        name=user.get("name", ""),
+        created_at=user.get("created_at")
     )
     
     return {"access_token": access_token, "token_type": "bearer", "user": user_response}
@@ -116,7 +114,7 @@ async def google_auth(
         name = idinfo.get('name', '')
         google_id = idinfo['sub']
         
-        # Security Check: Only allow specified emails to login via Google
+        # Optional allowlist — only active if ALLOWED_EMAILS is non-empty
         if ALLOWED_EMAILS and email not in ALLOWED_EMAILS:
             raise ValueError("This email address is not authorized to access this platform.")
         

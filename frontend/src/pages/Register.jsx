@@ -18,19 +18,44 @@ const Register = () => {
     const navigate = useNavigate();
 
     const handleComplete = async () => {
+        if (!name || !email || !password) {
+            toast.error('Please fill in all required fields.');
+            return;
+        }
         if (password !== confirmPassword) {
             toast.error("Passwords do not match!");
             return;
         }
+        if (password.length < 6) {
+            toast.error('Password must be at least 6 characters.');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
+            // Step 1: Register the new user
             await registerUser({ name, email, password });
+        } catch (err) {
+            setIsSubmitting(false);
+            if (!err.response) {
+                toast.error('Cannot reach server. Is the backend running?');
+            } else {
+                const detail = err.response?.data?.detail || 'Registration failed. Please try again.';
+                toast.error(detail);
+            }
+            return; // stop here — don't try to login
+        }
+
+        try {
+            // Step 2: Auto-login with the new credentials
             const data = await loginUser(email, password);
             login(data.access_token, data.user);
             toast.success('🌱 Welcome to CropSense AI!');
             navigate('/dashboard');
         } catch (err) {
-            toast.error(err.response?.data?.detail || 'Registration failed');
+            // Registration succeeded but auto-login failed — redirect to login page
+            toast.success('Account created! Please sign in.');
+            navigate('/login');
         } finally {
             setIsSubmitting(false);
         }

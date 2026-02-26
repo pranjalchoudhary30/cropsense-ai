@@ -18,10 +18,17 @@ const Login = () => {
         try {
             const data = await loginUser(email, password);
             login(data.access_token, data.user);
-            toast.success('Successfully logged in!');
+            toast.success('Welcome back! 👋');
             navigate('/dashboard');
         } catch (err) {
-            toast.error(err.response?.data?.detail || 'Failed to login');
+            const msg = err.response?.data?.detail
+                || err.message
+                || 'Login failed. Please try again.';
+            if (!err.response) {
+                toast.error('Cannot reach server. Is the backend running?');
+            } else {
+                toast.error(msg);
+            }
         } finally {
             setIsSubmitting(false);
         }
