@@ -182,7 +182,7 @@ CropSense AI is designed as a scalable AgriTech solution that:
 
 ## 👥 Team
 
-Developed by **Team [Your Team Name]**
+Developed by Tech crew
 
 ---
 
