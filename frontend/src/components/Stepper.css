@@ -26,10 +26,7 @@
     width: 100%;
     max-width: 28rem;
     border-radius: 2rem;
-    box-shadow:
-        0 20px 25px -5px rgba(0, 0, 0, 0.1),
-        0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    background-color: var(--color-surface-light);
+    background-color: transparent;
     overflow: hidden;
 }
 
@@ -73,14 +70,14 @@
     transition: all 350ms;
     border-radius: 0.25rem;
     padding: 0.25rem 0.5rem;
-    color: #a3a3a3;
+    color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
     background: none;
     border: none;
 }
 
 .back-button:hover {
-    color: var(--color-text-main);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .back-button.inactive {
@@ -153,7 +150,7 @@
     flex: 1;
     overflow: hidden;
     border-radius: 0.25rem;
-    background-color: #e5e7eb;
+    background-color: rgba(255, 255, 255, 0.15);
 }
 
 .step-connector-inner {

@@ -111,23 +111,29 @@ export default function Dashboard() {
         }));
     }, [predictionData]);
 
-    const latestPrice = chartData[chartData.length - 1]?.price;
-    const firstPrice = chartData[0]?.price;
-    const priceDelta = latestPrice && firstPrice ? (((latestPrice - firstPrice) / firstPrice) * 100).toFixed(1) : '+8.4';
-    const priceUp = parseFloat(priceDelta) >= 0;
+
 
     /* ── Analyse handler ── */
     const handleAnalyze = async () => {
         setIsLoading(true);
         setError(null);
         try {
-            const [weather, prediction, recommendation, spoilage] = await Promise.all([
-                getWeather(location).catch(() => null),
+            const weatherResult = await getWeather(location).catch(() => null);
+            const temp = weatherResult?.temperature ?? 30;
+            const humidity = weatherResult?.humidity ?? 65;
+
+            const [prediction, recommendation, spoilage] = await Promise.all([
                 predictPrice(crop, location),
                 recommendMarket(crop, location),
-                getSpoilageRisk({ temperature: 30, humidity: 75, storage_type: 'normal', transit_days: 2 }),
+                getSpoilageRisk({
+                    temperature: temp,
+                    humidity: humidity,
+                    storage_type: 'warehouse',
+                    transit_days: 3,
+                    crop,
+                }),
             ]);
-            setWeatherData(weather);
+            setWeatherData(weatherResult);
             setPredictionData(prediction);
             setRecommendationData(recommendation);
             setSpoilageData(spoilage);
@@ -140,9 +146,18 @@ export default function Dashboard() {
         }
     };
 
-    const spoilagePct = spoilageData ? Math.round(spoilageData.spoilage_probability * 100) : 0;
-    const spoilageColor = spoilagePct > 60 ? '#ef4444' : spoilagePct > 30 ? '#f59e0b' : '#10b981';
-
+    const spoilagePct = spoilageData ? Math.round((spoilageData.spoilage_probability ?? 0) * 100) : 0;
+    const spoilageColor = spoilageData?.risk_color ?? (spoilagePct > 60 ? '#ef4444' : spoilagePct > 30 ? '#f59e0b' : '#10b981');
+    const priceDelta = predictionData?.pct_change != null
+        ? (predictionData.pct_change >= 0 ? '+' : '') + predictionData.pct_change
+        : (() => {
+            const latest = chartData[chartData.length - 1]?.price;
+            const first = chartData[0]?.price;
+            if (!latest || !first) return '+0.0';
+            const d = (((latest - first) / first) * 100).toFixed(1);
+            return (parseFloat(d) >= 0 ? '+' : '') + d;
+        })();
+    const priceUp = parseFloat(priceDelta) >= 0;
     return (
         <div className="bg-background-light text-text-main font-display min-h-screen flex flex-col">
 
@@ -450,7 +465,7 @@ export default function Dashboard() {
                                         className="w-full h-full object-cover"
                                         src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuk5gs7HN3JaGIqMEn7oIbLu4JGVSqaNqxJ2mF3-ivQvoHCrp65hrwlUOa1LH0KWBN31zHpGq4YWgoUbLpw6hGSoSTwVSuWG4ZV4gyVEtiBVGQ984AK_DEKlaqoZ61QspKyByAx1XPbGWeGbhbrrQX1akKr832_sPTAO75EmtxOiR4wy4Qrw8mUHKqGEWkpNvNj09_h80c6Hf0dYWH0GZE8thTUeNBPOVBrIOPZB2m58a1FD5rtK2YkZUPkxX9SebYGnxbCHULic0" />
                                     <div className="absolute bottom-2 left-2 bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
-                                        24km Away
+                                        {recommendationData?.distance_km != null ? `${recommendationData.distance_km}km Away` : '—'}
                                     </div>
                                 </div>
 
@@ -476,7 +491,7 @@ export default function Dashboard() {
                                         <div className="bg-background-light p-3 rounded-xl border border-border-light">
                                             <p className="text-[10px] text-text-sub font-medium uppercase tracking-wide">Exp. Profit/Acre</p>
                                             <p className="text-xl font-black text-green-600 mt-0.5">
-                                                ₹{fmt(recommendationData?.expected_profit ?? '18,500')}
+                                                ₹{fmt(recommendationData?.expected_profit_per_qt ?? recommendationData?.net_price ?? '—')}
                                             </p>
                                         </div>
                                     </div>
@@ -495,10 +510,15 @@ export default function Dashboard() {
                                         </div>
                                     </div>
 
-                                    <button className="w-full py-2.5 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 text-sm group">
+                                    <a
+                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((recommendationData?.best_mandi ?? 'Mandi') + ' India')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-full py-2.5 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 text-sm group"
+                                    >
                                         <span className="material-symbols-outlined text-lg group-hover:scale-110 transition-transform">navigation</span>
                                         Navigate to Mandi
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
                         </div>
