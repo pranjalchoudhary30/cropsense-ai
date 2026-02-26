@@ -10,6 +10,10 @@ from app.config import settings
 async def lifespan(app: FastAPI):
     # Startup logic
     await connect_to_mongo()
+    # Bootstrap indexes
+    from app.database import db
+    from app.repositories.user_repository import UserRepository
+    await UserRepository(db.db).ensure_indexes()
     yield
     # Shutdown logic
     await close_mongo_connection()
@@ -41,8 +45,9 @@ async def health_check():
     return {"status": "ok", "service": "CropSense AI API"}
 
 # Include Routers
-from app.routes import prediction, weather, recommendation, spoilage, crop
+from app.routes import auth, prediction, weather, recommendation, spoilage, crop
 
+app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(prediction.router)
 app.include_router(weather.router)
 app.include_router(recommendation.router)

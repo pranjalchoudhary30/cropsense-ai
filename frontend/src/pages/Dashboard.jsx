@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { predictPrice, getWeather, recommendMarket, getSpoilageRisk } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const Dashboard = () => {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -54,12 +57,30 @@ const Dashboard = () => {
                             <span className="material-symbols-outlined">notifications</span>
                             <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-surface-light dark:border-surface-dark"></span>
                         </button>
-                        <button className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-border-light dark:border-border-dark">
-                            <div className="size-7 rounded-full bg-primary/20 flex items-center justify-center text-primary overflow-hidden">
-                                <img alt="User profile" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2AiiDwi_Vs80_0CfvJXVv6IvGnCz7k4RhyUbe6Plpqbc2r6WgCGkB6_rwmVKQ12b5T7U3oCtI2ru2iSzLdFwX_ugiGVAkZqwb6GXEJe4nszYUMz98e3XPfGYt-JjFGSFsM_lJxdIXOmMfclG22hxmQjCuiMlR2QYk3EDvVMEIB4X7R41s24UYghx2IFWKo20lAzydhDPW2MoJ_BBkUSyCAG5TXh44OTEOS7uNMpno0QPN50APk9sAoa73ULT4WkcyqHHSkbmx9q8" />
+                        <div className="relative group">
+                            <button className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-border-light dark:border-border-dark">
+                                <div className="size-7 rounded-full bg-primary/20 flex items-center justify-center text-primary overflow-hidden">
+                                    <span className="font-bold text-xs uppercase">{user?.name ? user.name.charAt(0) : 'U'}</span>
+                                </div>
+                                <span className="text-sm font-medium pr-1">{user?.name || 'User'}</span>
+                            </button>
+
+                            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg shadow-xl py-1 hidden group-hover:block z-50">
+                                <div className="px-4 py-2 border-b border-border-light dark:border-border-dark">
+                                    <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{user?.name}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email}</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        logout();
+                                        navigate('/login');
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                >
+                                    Sign out
+                                </button>
                             </div>
-                            <span className="text-sm font-medium pr-1">John Farmer</span>
-                        </button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -318,8 +339,8 @@ const Dashboard = () => {
 
                                         {spoilageData && (
                                             <div className={`mt-4 p-3 rounded-lg border flex items-start ${spoilageData.risk_level === 'High'
-                                                    ? 'bg-red-50 border-red-100 text-red-800'
-                                                    : 'bg-amber-50 border-amber-100 text-amber-800'
+                                                ? 'bg-red-50 border-red-100 text-red-800'
+                                                : 'bg-amber-50 border-amber-100 text-amber-800'
                                                 }`}>
                                                 <span className="material-symbols-outlined w-5 h-5 mr-3 mt-0.5 flex-shrink-0">warning</span>
                                                 <div>

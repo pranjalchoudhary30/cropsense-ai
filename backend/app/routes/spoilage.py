@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from app.services.spoilage_model import SpoilageModel
+from fastapi import Depends
+from app.routes.auth import get_current_user
 
 router = APIRouter(prefix="/spoilage-risk", tags=["Spoilage Risk"])
 service = SpoilageModel()
@@ -12,7 +14,7 @@ class SpoilageRequest(BaseModel):
     transit_days: int
 
 @router.post("/")
-async def calculate_spoilage_risk(request: SpoilageRequest):
+async def calculate_spoilage_risk(request: SpoilageRequest, current_user=Depends(get_current_user)):
     result = await service.calculate_risk(
         temperature=request.temperature,
         humidity=request.humidity,

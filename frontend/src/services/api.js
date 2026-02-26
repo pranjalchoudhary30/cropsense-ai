@@ -14,6 +14,34 @@ export const checkHealth = async () => {
     return response.data;
 };
 
+// --- Authentication Endpoints ---
+
+export const loginUser = async (email, password) => {
+    // OAuth2 password request form expects form data, not JSON
+    const formData = new URLSearchParams();
+    formData.append('username', email); // OAuth2 expects 'username' field
+    formData.append('password', password);
+
+    const response = await axios.post(`${API_BASE_URL}/auth/login`, formData, {
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    });
+    return response.data;
+};
+
+export const registerUser = async (userData) => {
+    const response = await api.post('/auth/register', userData);
+    return response.data;
+};
+
+export const googleAuthLogin = async (credential) => {
+    const response = await api.post('/auth/google', { credential });
+    return response.data;
+};
+
+// --- Protected Endpoints ---
+
 export const predictPrice = async (crop, location) => {
     const response = await api.post('/predict-price/', { crop, location });
     return response.data;

@@ -1,16 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #2f7f33;
-  --color-primary-dark: #1e5e22;
+  --color-primary: #10b981;
+  --color-primary-dark: #047857;
+  --color-primary-light: #34d399;
+  --color-accent: #0ea5e9;
 
-  --color-background-light: #f6f8f6;
+  /* Light mode tokens (default) */
+  --color-background-light: #ffffff;
   --color-background-dark: #141e15;
 
   --color-surface-light: #ffffff;
   --color-surface-dark: #1c2b1e;
 
-  --color-border-light: #dee3de;
+  --color-border-light: #e5e7eb;
   --color-border-dark: #2a3b2c;
 
   --color-text-main: #131613;
@@ -30,4 +33,28 @@
     color: var(--color-text-main);
     font-family: var(--font-display);
   }
+}
+
+/* Custom Dark Mode Theme Overrides */
+.dark {
+  --color-background-light: #141e15;
+  --color-surface-light: #1c2b1e;
+  --color-text-main: #f3f4f6;
+  --color-text-sub: #9ca3af;
+  --color-border-light: #2a3b2c;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* New state always expands on top of old state */
+::view-transition-new(root) {
+  z-index: 1;
+}
+
+::view-transition-old(root) {
+  z-index: 0;
 }
