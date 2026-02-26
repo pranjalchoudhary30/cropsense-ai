@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "CropSense AI",
+    "slug": "cropsense-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "cropsense",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f0fdf4"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cropsense.app"
+    },
+    "android": {
+      "package": "com.cropsense.app"
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}
