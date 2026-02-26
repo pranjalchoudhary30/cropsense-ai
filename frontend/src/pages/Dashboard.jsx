@@ -510,6 +510,7 @@ export default function Dashboard() {
                                         </div>
                                     </div>
 
+                                    {/* Navigate: opens Google Maps */}
                                     <a
                                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((recommendationData?.best_mandi ?? 'Mandi') + ' India')}`}
                                         target="_blank"
