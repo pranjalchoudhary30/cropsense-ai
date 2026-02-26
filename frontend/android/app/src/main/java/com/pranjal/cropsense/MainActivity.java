@@ -1,4 +1,4 @@
-package com.cropsense.app;
+package com.pranjal.cropsense;
 
 import com.getcapacitor.BridgeActivity;
 

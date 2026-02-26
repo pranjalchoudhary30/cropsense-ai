@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">CropSense AI</string>
-    <string name="title_activity_main">CropSense AI</string>
-    <string name="package_name">com.cropsense.app</string>
-    <string name="custom_url_scheme">com.cropsense.app</string>
+    <string name="app_name">Crop Sense</string>
+    <string name="title_activity_main">Crop Sense</string>
+    <string name="package_name">com.pranjal.cropsense</string>
+    <string name="custom_url_scheme">com.pranjal.cropsense</string>
 </resources>

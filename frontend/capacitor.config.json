@@ -1,16 +1,16 @@
 {
-    "appId": "com.cropsense.app",
-    "appName": "CropSense AI",
+    "appId": "com.pranjal.cropsense",
+    "appName": "Crop Sense",
     "webDir": "dist",
     "server": {
-        "androidScheme": "https"
+        "androidScheme": "https",
+        "cleartext": true
     },
     "plugins": {
         "SplashScreen": {
-            "launchShowDuration": 2000,
+            "launchShowDuration": 2500,
             "launchAutoHide": true,
             "backgroundColor": "#f0fdf4",
-            "androidSplashResourceName": "splash",
             "showSpinner": false
         },
         "StatusBar": {
@@ -21,6 +21,13 @@
     "android": {
         "allowMixedContent": true,
         "captureInput": true,
-        "webContentsDebuggingEnabled": true
+        "webContentsDebuggingEnabled": false,
+        "buildOptions": {
+            "keystorePath": "release.keystore",
+            "keystoreAlias": "cropsense",
+            "keystorePassword": "cropsense2024",
+            "keystoreAliasPassword": "cropsense2024",
+            "releaseType": "APK"
+        }
     }
 }
