@@ -9,6 +9,12 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
     SECRET_KEY: str = "cropsense-super-secret-jwt-key-2026"
+    # Cloudinary (optional — leave blank to use base64 fallback)
+    CLOUDINARY_CLOUD_NAME: str = ""
+    CLOUDINARY_API_KEY: str = ""
+    CLOUDINARY_API_SECRET: str = ""
+    # Plant.id API (optional — leave blank to use mock ML)
+    PLANT_ID_API_KEY: str = ""
 
     class Config:
         env_file = ".env"

@@ -45,7 +45,7 @@ async def health_check():
     return {"status": "ok", "service": "CropSense AI API"}
 
 # Include Routers
-from app.routes import auth, prediction, weather, recommendation, spoilage, crop
+from app.routes import auth, prediction, weather, recommendation, spoilage, crop, disease
 
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(prediction.router)
@@ -53,4 +53,5 @@ app.include_router(weather.router)
 app.include_router(recommendation.router)
 app.include_router(spoilage.router)
 app.include_router(crop.router)
+app.include_router(disease.router)
 

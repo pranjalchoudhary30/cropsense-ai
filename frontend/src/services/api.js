@@ -63,4 +63,24 @@ export const getSpoilageRisk = async (data) => {
     return response.data;
 };
 
+// ── Disease Detection ─────────────────────────────────────────────────
+
+/**
+ * Detect disease from an uploaded leaf image.
+ * @param {FormData} formData — must contain `file` (image) and optionally `crop_hint`
+ */
+export const detectDisease = async (formData) => {
+    // Use the shared api instance — it already has Authorization header set by AuthContext
+    const response = await api.post('/disease/detect', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+};
+
+/** Fetch detection history for the logged-in user (newest first). */
+export const getDetectionHistory = async (limit = 20) => {
+    const response = await api.get(`/disease/history?limit=${limit}`);
+    return response.data;
+};
+
 export default api;

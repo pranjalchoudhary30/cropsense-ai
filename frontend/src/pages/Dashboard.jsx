@@ -214,6 +214,7 @@ export default function Dashboard() {
                         {[
                             [t('dashboard'), 'dashboard', '/dashboard'],
                             [t('market'), 'store', '/market'],
+                            ['Disease', 'biotech', '/disease'],
                             [t('insights'), 'auto_awesome', '#'],
                         ].map(([label, icon, href]) => (
                             href.startsWith('/') ? (
@@ -692,10 +693,35 @@ export default function Dashboard() {
                 </div>
 
                 {/* ── FOOTER NOTE ─────────────────────────────────────── */}
-                <p className="text-center text-xs text-text-sub pb-4">
+                <p className="text-center text-xs text-text-sub pb-20 md:pb-4">
                     Data refreshed in real-time · CropSense AI © {new Date().getFullYear()} · All insights are AI-generated recommendations
                 </p>
             </main>
+
+            {/* ── MOBILE BOTTOM NAV (Android / small screens only) ─────── */}
+            <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-border-light shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+                <div className="flex items-stretch justify-around h-16">
+                    {[
+                        { label: 'Home', icon: 'dashboard', href: '/dashboard' },
+                        { label: 'Market', icon: 'store', href: '/market' },
+                        { label: 'Disease', icon: 'biotech', href: '/disease' },
+                        { label: 'Profile', icon: 'person', href: '/profile' },
+                    ].map(({ label, icon, href }) => {
+                        const isActive = window.location.hash === `#${href}`;
+                        return (
+                            <Link
+                                key={label}
+                                to={href}
+                                className={`flex flex-col items-center justify-center gap-0.5 flex-1 transition-colors
+                                    ${isActive ? 'text-primary' : 'text-gray-400 hover:text-primary'}`}
+                            >
+                                <span className={`material-symbols-outlined text-2xl ${isActive ? 'text-primary' : ''}`}>{icon}</span>
+                                <span className="text-[10px] font-semibold">{label}</span>
+                            </Link>
+                        );
+                    })}
+                </div>
+            </nav>
         </div >
     );
 }

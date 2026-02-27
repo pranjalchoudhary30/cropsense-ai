@@ -10,6 +10,7 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Pricing from './pages/Pricing';
 import Market from './pages/Market';
+import DiseaseDetection from './pages/DiseaseDetection';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -37,6 +38,7 @@ function AnimatedRoutes() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/market" element={<Market />} />
+          <Route path="/disease" element={<DiseaseDetection />} />
         </Route>
       </Routes>
     </SlideWrapper>
