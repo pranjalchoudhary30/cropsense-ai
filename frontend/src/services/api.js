@@ -83,4 +83,18 @@ export const getDetectionHistory = async (limit = 20) => {
     return response.data;
 };
 
+// ── Yield Prediction ──────────────────────────────────────────────────────────
+
+/** POST /yield/predict — run yield & profit prediction */
+export const predictYield = async (payload) => {
+    const response = await api.post('/yield/predict', payload);
+    return response.data;
+};
+
+/** GET /yield/history — fetch user's past predictions */
+export const getYieldHistory = async (limit = 20) => {
+    const response = await api.get(`/yield/history?limit=${limit}`);
+    return response.data;
+};
+
 export default api;

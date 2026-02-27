@@ -215,6 +215,7 @@ export default function Dashboard() {
                             [t('dashboard'), 'dashboard', '/dashboard'],
                             [t('market'), 'store', '/market'],
                             ['Disease', 'biotech', '/disease'],
+                            ['Yield', 'agriculture', '/yield'],
                             [t('insights'), 'auto_awesome', '#'],
                         ].map(([label, icon, href]) => (
                             href.startsWith('/') ? (
@@ -704,6 +705,7 @@ export default function Dashboard() {
                     {[
                         { label: 'Home', icon: 'dashboard', href: '/dashboard' },
                         { label: 'Market', icon: 'store', href: '/market' },
+                        { label: 'Yield', icon: 'agriculture', href: '/yield' },
                         { label: 'Disease', icon: 'biotech', href: '/disease' },
                         { label: 'Profile', icon: 'person', href: '/profile' },
                     ].map(({ label, icon, href }) => {
