@@ -6,6 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import {
     AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
 } from 'recharts';
+import Squares from '../components/Squares';
 
 /* ─── tiny helpers ──────────────────────────────────────────── */
 const fmt = (n) => n != null ? Number(n).toLocaleString('en-IN') : '—';
@@ -186,7 +187,18 @@ export default function Dashboard() {
     const priceUp = parseFloat(priceDelta) >= 0;
     const latestPrice = chartData[chartData.length - 1]?.price ?? predictionData?.current_price ?? 2970;
     return (
-        <div className="bg-background-light text-text-main font-display min-h-screen flex flex-col">
+        <div className="bg-background-light text-text-main font-display min-h-screen flex flex-col relative">
+
+            {/* ── Squares animated grid background ── */}
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <Squares
+                    speed={0.3}
+                    squareSize={44}
+                    direction="diagonal"
+                    borderColor="#d1fae5"
+                    hoverFillColor="#f0fdf4"
+                />
+            </div>
 
             {/* ── HEADER ───────────────────────────────────────────── */}
             <header className="sticky top-0 z-50 bg-surface-light/90 backdrop-blur-md border-b border-border-light shadow-sm">
@@ -297,7 +309,7 @@ export default function Dashboard() {
                 </div>
             </header>
 
-            <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
+            <main className="relative z-10 flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
 
                 {/* ── WELCOME BANNER ──────────────────────────────────── */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -359,16 +371,47 @@ export default function Dashboard() {
                                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-border-light bg-background-light text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all placeholder:text-text-sub/60" />
                             </div>
                         </div>
-                    </div>
 
-                    {/* Predict button */}
-                    <button onClick={handleAnalyze} disabled={isLoading}
-                        className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark text-white font-bold shadow-lg shadow-primary/30 hover:scale-[1.03] hover:shadow-primary/50 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100">
-                        {isLoading
-                            ? <><div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {t('analyzing')}</>
-                            : <><span className="material-symbols-outlined">psychology</span>{t('runAnalysis')}</>
-                        }
-                    </button>
+
+                        {/* Predict button — inline with inputs, MagicUI animated gradient */}
+                        <button
+                            onClick={handleAnalyze}
+                            disabled={isLoading}
+                            className="group relative flex-shrink-0 w-full md:w-auto flex items-center justify-center gap-2 rounded-xl px-6 py-3 shadow-[inset_0_-8px_10px_#8fdfff1f] transition-shadow duration-500 ease-out hover:shadow-[inset_0_-5px_10px_#8fdfff3f] disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                            {/* Animated gradient border */}
+                            <span
+                                className="animate-gradient absolute inset-0 block h-full w-full rounded-[inherit] bg-gradient-to-r from-[#ffaa40]/60 via-[#9c40ff]/60 to-[#ffaa40]/60 bg-[length:300%_100%] p-[1.5px]"
+                                style={{
+                                    WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                                    WebkitMaskComposite: "destination-out",
+                                    mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                                    maskComposite: "subtract",
+                                }}
+                            />
+                            {isLoading ? (
+                                <>
+                                    <div className="size-5 border-2 border-[#9c40ff]/40 border-t-[#ffaa40] rounded-full animate-spin" />
+                                    <span
+                                        style={{ "--bg-size": "300%", "--color-from": "#ffaa40", "--color-to": "#9c40ff" }}
+                                        className="animate-gradient font-bold bg-gradient-to-r from-[var(--color-from)] via-[var(--color-to)] to-[var(--color-from)] bg-[length:var(--bg-size)_100%] bg-clip-text text-transparent"
+                                    >
+                                        {t('analyzing')}
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="material-symbols-outlined animate-gradient bg-gradient-to-r from-[#ffaa40] via-[#9c40ff] to-[#ffaa40] bg-[length:300%_100%] bg-clip-text text-transparent">psychology</span>
+                                    <span
+                                        style={{ "--bg-size": "300%", "--color-from": "#ffaa40", "--color-to": "#9c40ff" }}
+                                        className="animate-gradient font-bold bg-gradient-to-r from-[var(--color-from)] via-[var(--color-to)] to-[var(--color-from)] bg-[length:var(--bg-size)_100%] bg-clip-text text-transparent"
+                                    >
+                                        {t('runAnalysis')}
+                                    </span>
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </section>
 
                 {/* ── QUICK STATS BAR ─────────────────────────────────── */}

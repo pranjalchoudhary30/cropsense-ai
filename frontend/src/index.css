@@ -299,6 +299,17 @@
   animation: line-shadow 15s linear infinite;
 }
 
+/* ── MagicUI AnimatedGradientText ── */
+@keyframes gradient {
+  to {
+    background-position: var(--bg-size, 300%) 0;
+  }
+}
+
+.animate-gradient {
+  animation: gradient 8s linear infinite;
+}
+
 /* ── Uiverse.io loader (Fernando-sv) ── */
 .loader {
   border: 4px solid rgba(255, 255, 255, 0.15);

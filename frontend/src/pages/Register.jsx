@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 import { Stepper, Step } from '../components/Stepper';
-import Prism from '../components/Prism';
+import Squares from '../components/Squares';
 import MagicCard from '../components/MagicCard';
 
 const Register = () => {
@@ -65,21 +65,16 @@ const Register = () => {
     const inputStyle = { background: 'rgba(255,255,255,0.07)' };
 
     return (
-        <div className="relative min-h-screen flex flex-col items-center justify-center px-4 overflow-hidden">
+        <div className="relative min-h-screen flex flex-col items-center justify-center px-4 overflow-hidden" style={{ backgroundColor: '#0d1117' }}>
 
-            {/* ── Prism full-page background ── */}
+            {/* ── Squares animated grid background ── */}
             <div className="absolute inset-0 z-0">
-                <Prism
-                    animationType="rotate"
-                    timeScale={0.5}
-                    height={3.5}
-                    baseWidth={5.5}
-                    scale={3.6}
-                    hueShift={0}
-                    colorFrequency={1}
-                    noise={0}
-                    glow={1}
-                    transparent={false}
+                <Squares
+                    speed={0.5}
+                    squareSize={40}
+                    direction="diagonal"
+                    borderColor="#2a4030"
+                    hoverFillColor="#1e3020"
                 />
             </div>
 
